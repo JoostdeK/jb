@@ -1,0 +1,45 @@
+# =========================
+# Tokyo Night Mako Config 🌙
+# =========================
+
+# Font
+font=CaskaydiaMono Nerd Font 10
+#font-size=8
+
+# Colors (Tokyo Night Storm)
+background-color=#1a1b26
+text-color=#c0caf5
+border-color=#7aa2f7
+
+# Layout
+border-size=1
+border-radius=3
+padding=8
+margin=10
+default-timeout=5000
+
+# Position
+anchor=top-right
+max-visible=5
+
+# Progress bar (if used)
+progress-color=over #9ece6a
+
+# Icons (if you want them)
+# You can disable icons entirely:
+# icons=0
+
+# Transparency (optional, if compositor supports it)
+# background-color=#1a1b26cc
+
+# Urgency levels (optional overrides)
+[urgency=low]
+border-color=#565f89
+
+[urgency=normal]
+border-color=#7aa2f7
+
+[urgency=high]
+border-color=#f7768e
+default-timeout=10000
+
