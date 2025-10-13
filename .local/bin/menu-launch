@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Set to true when going directly to a submenu, so we can exit directly
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+  local extra="$3"
+  local preselect="$4"
+
+  read -r -a args <<<"$extra"
+
+  if [[ -n "$preselect" ]]; then
+    local index
+    index=$(echo -e "$options" | grep -nxF "$preselect" | cut -d: -f1)
+    if [[ -n "$index" ]]; then
+      args+=("-c" "$index")
+    fi
+  fi
+
+  echo -e "$options" | walker-launch --dmenu --width 250 --minheight 1 --maxheight 600 -p "$prompt…" "${args[@]}" 2>/dev/null
+}
+
+terminal() {
+  kitty "$@"
+}
+
+open_in_editor() {
+  notify-send "Editing config file" "$1"
+  editor-launch "$1"
+}
+
+show_learn_menu() {
+  pick_and_run "Learn" <<'EOF' || show_main_menu
+  Keybindings| menu-keybindings
+  Hyprland   | webapp-launch "https://wiki.hypr.land/"
+󰣇  Arch       | webapp-launch "https://wiki.archlinux.org/title/Main_page"
+  Neovim     | webapp-launch "https://www.lazyvim.org/keymaps"
+󱆃  Bash       | webapp-launch "https://devhints.io/bash"
+EOF
+}
+
+show_setup_config_menu() {
+  pick_and_run "Setup" <<'EOF' || show_main_menu
+  Bins     | open_in_editor ~/.local/bin/
+  Vim      | open_in_editor ~/.config/nvim/
+  Hypr     | open_in_editor ~/.config/hypr/
+󰌧  Walker   | open_in_editor ~/.config/walker/
+󰍜  Waybar   | open_in_editor ~/.config/waybar/
+EOF
+}
+
+show_install_menu() {
+  pick_and_run "Install" <<'EOF' || show_main_menu
+󰣇  Package | terminal pkg-install
+󰣇  AUR     | terminal pkg-aur-install
+  Web App | terminal webapp-install
+EOF
+}
+
+show_remove_menu() {
+  pick_and_run "Remove" <<'EOF' || show_main_menu
+󰣇  Package  | terminal pkg-remove
+  Web App  | terminal webapp-remove
+  TUI      | terminal tui-remove
+EOF
+}
+
+show_system_menu() {
+  pick_and_run "System" <<'EOF' || show_main_menu
+󰣇  Update    | terminal yay -Syu
+  Lock     | hyprlock
+󰤄  Suspend  | systemctl suspend
+  Relaunch | hyprctl dispatch exit
+󰜉  Restart  | systemctl reboot
+󰐥  Shutdown | systemctl poweroff
+EOF
+}
+
+show_main_menu() {
+  pick_and_run "Go" <<'EOF'
+  Config   | show_setup_config_menu
+󰉉  Install  | show_install_menu
+󰭌  Remove   | show_remove_menu
+󰀻  Apps     | walker -p "Launch…"
+󰧑  Learn    | show_learn_menu
+  System   | show_system_menu
+EOF
+}
+
+pick_and_run() {
+  local prompt="$1"
+  shift
+
+  # Read heredoc -> array of raw lines
+  local lines=()
+  mapfile -t lines </dev/stdin
+
+  # local helpers
+  trim() {
+    local s="$1"
+    # trim leading
+    s="${s#"${s%%[![:space:]]*}"}"
+    # trim trailing
+    s="${s%"${s##*[![:space:]]}"}"
+    printf '%s' "$s"
+  }
+
+  # Build label list and a label->cmd map
+  local labels=()
+  declare -A cmds
+
+  local line left right
+  for line in "${lines[@]}"; do
+    # skip empty / whitespace-only / comment lines
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+
+    IFS='|' read -r left right <<<"$line"
+    left="$(trim "$left")"
+    right="$(trim "$right")"
+
+    # require both sides
+    [[ -z "$left" || -z "$right" ]] && continue
+
+    labels+=("$left")
+    cmds["$left"]="$right"
+  done
+
+  # If nothing parsed, just return non-zero so caller's "|| fallback" runs
+  ((${#labels[@]})) || return 1
+
+  # Compose options exactly as displayed (trimmed labels)
+  local options
+  options="$(printf '%s\n' "${labels[@]}")"
+
+  local choice
+  choice="$(menu "$prompt" "$options")" || return
+
+  local cmd="${cmds[$choice]}"
+  [[ -n "$cmd" ]] && eval "$cmd"
+}
+
+show_main_menu
