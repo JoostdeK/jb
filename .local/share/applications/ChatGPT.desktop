@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=ChatGPT
+Comment=ChatGPT
+Exec=webapp-launch https://www.chatgpt.com
+Terminal=false
+Type=Application
+Icon=/home/jvdb/.local/bin/icons/ChatGPT
+StartupNotify=true
