@@ -43,6 +43,7 @@ EOF
 show_setup_config_menu() {
   pick_and_run "Setup" <<'EOF' || show_main_menu
   Bins     | open_in_editor ~/.local/bin/
+󱆃  System    | open_in_editor ~/dev/system/
   Vim      | open_in_editor ~/.config/nvim/
   Hypr     | open_in_editor ~/.config/hypr/
 󰌧  Walker   | open_in_editor ~/.config/walker/
