@@ -1,0 +1,74 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+# Shows "X update(s) available" if any tracked repo differs from origin/HEAD.
+# Tooltip lists only the repo names needing update.
+
+mode="${1:---waybar}"
+needs=0
+names=()
+
+_git_cmd() {
+  local kind="$1" path="$2"
+  if [[ "$kind" == "normal" ]]; then
+    echo "git -C \"$path\""
+  else
+    if command -v jb >/dev/null 2>&1; then
+      echo "jb"
+    else
+      echo "git -C \"$HOME\" --git-dir=\"$HOME/.jb\" --work-tree=\"$HOME\""
+    fi
+  fi
+}
+
+check_repo() {
+  local label="$1" kind="$2" path="$3"
+  local G
+  G=$(_git_cmd "$kind" "$path")
+
+  # fetch remote refs (quietly)
+  eval "$G fetch --quiet --prune" || true
+
+  local local_commit remote_ref remote_commit
+  local_commit="$(eval "$G rev-parse -q --verify HEAD" || echo none)"
+  remote_ref="$(eval "$G symbolic-ref -q refs/remotes/origin/HEAD" || true)"
+  if [[ -z "$remote_ref" ]]; then
+    for r in refs/remotes/origin/main refs/remotes/origin/master; do
+      if eval "$G show-ref --verify --quiet $r"; then
+        remote_ref="$r"
+        break
+      fi
+    done
+  fi
+  remote_commit="none"
+  [[ -n "$remote_ref" ]] && remote_commit="$(eval "$G rev-parse -q --verify \"$remote_ref\"" || echo none)"
+
+  if [[ "$local_commit" != "$remote_commit" && "$remote_commit" != "none" && "$local_commit" != "none" ]]; then
+    needs=$((needs + 1))
+    names+=("$label")
+  fi
+}
+
+# Check all three
+check_repo "setup" normal "$HOME/dev/system"
+check_repo "jb" bare "$HOME/.jb"
+check_repo "omarchy" normal "$HOME/dev/omarchy"
+
+if [[ "$mode" == "--print" ]]; then
+  if ((needs > 0)); then
+    printf "Updates available: %s\n" "${names[*]}"
+  else
+    echo "All up to date."
+  fi
+  exit 0
+fi
+
+# Waybar JSON output
+if ((needs > 0)); then
+  tooltip="$(printf "%s\n" "${names[@]}")"
+  esc_tooltip="$(printf "%s" "$tooltip" | sed 's/"/\\"/g')"
+  text="${needs} update(s) available"
+  printf '{"text":"%s","tooltip":"%s","class":"updates"}\n' "$text" "$esc_tooltip"
+else
+  printf '{"text":"","tooltip":"","class":"clean"}\n'
+fi

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[setup]    git pull --ff-only"
+git -C "$HOME/dev/system" pull --ff-only --no-rebase
+
+echo "[omarchy]  git pull --ff-only"
+git -C "$HOME/dev/omarchy" pull --ff-only --no-rebase
+
+echo "[jb]       git pull --ff-only"
+if command -v jb >/dev/null 2>&1; then
+  jb pull --ff-only --no-rebase
+else
+  git --git-dir="$HOME/.jb" --work-tree="$HOME" pull --ff-only --no-rebase
+fi
+
+# optionally refresh waybar
+pkill -SIGRTMIN+8 waybar >/dev/null 2>&1 || true
+
+echo "Done."
