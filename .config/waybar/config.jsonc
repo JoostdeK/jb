@@ -7,7 +7,7 @@
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["clock"],
   "modules-right": [
-    "group/tray-expander",
+    "custom/system-update-check",
     "bluetooth",
     "network",
     "pulseaudio",
@@ -100,20 +100,13 @@
       "default": ["", "", ""]
     }
   },
-  "group/tray-expander": {
-    "orientation": "inherit",
-    "drawer": {
-      "transition-duration": 600,
-      "children-class": "tray-group-item"
-    },
-    "modules": ["custom/expand-icon", "tray"]
-  },
-  "custom/expand-icon": {
-    "format": " ",
-    "tooltip": false
-  },
-  "tray": {
-    "icon-size": 12,
-    "spacing": 12
+  "custom/system-update-check": {
+    "exec": "~/.local/bin/system-update-check --waybar",
+    "return-type": "json",
+    "interval": 900,
+    "tooltip": true,
+    "signal": 8,                                  // allow manual refresh
+    "on-click": "~/.local/bin/system-update-apply",  // run updater on click
+    "format": "{}"
   }
 }
