@@ -50,7 +50,7 @@ check_repo() {
 }
 
 # Check all three
-check_repo "setup" normal "$HOME/dev/system"
+check_repo "setup" normal "$HOME/dev/setup/"
 check_repo "jb" bare "$HOME/.jb"
 check_repo "omarchy" normal "$HOME/dev/omarchy"
 
@@ -65,10 +65,24 @@ fi
 
 # Waybar JSON output
 if ((needs > 0)); then
-  tooltip="$(printf "%s\n" "${names[@]}")"
-  esc_tooltip="$(printf "%s" "$tooltip" | sed 's/"/\\"/g')"
+  # join repo names with newlines (no trailing newline)
+  tooltip="$(printf '%s\n' "${names[@]}")"
+  tooltip="${tooltip%$'\n'}"
   text="${needs} update(s) available"
-  printf '{"text":"%s","tooltip":"%s","class":"updates"}\n' "$text" "$esc_tooltip"
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -cn --arg text "$text" --arg tooltip "$tooltip" --arg class "updates" \
+      '{text:$text, tooltip:$tooltip, class:$class}' || {
+      # jq failed: fall back to plain printf with escaping
+      esc_tooltip="$(printf '%s' "$tooltip" | sed ':a;N;$!ba;s/\n/\\n/g;s/"/\\"/g')"
+      printf '{"text":"%s","tooltip":"%s","class":"updates"}\n' "$text" "$esc_tooltip"
+    }
+  else
+    # jq missing: escape quotes + newlines manually
+    esc_tooltip="$(printf '%s' "$tooltip" | sed ':a;N;$!ba;s/\n/\\n/g;s/"/\\"/g')"
+    printf '{"text":"%s","tooltip":"%s","class":"updates"}\n' "$text" "$esc_tooltip"
+  fi
 else
+  # show an explicit "clean" state
   printf '{"text":"","tooltip":"","class":"clean"}\n'
 fi

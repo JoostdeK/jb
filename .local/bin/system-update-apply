@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "[setup]    git pull --ff-only"
-git -C "$HOME/dev/system" pull --ff-only --no-rebase
+git -C "$HOME/dev/setup/" pull --ff-only --no-rebase
 
 echo "[omarchy]  git pull --ff-only"
 git -C "$HOME/dev/omarchy" pull --ff-only --no-rebase
