@@ -82,7 +82,7 @@ alias rh='hyprctl dispatch exit'
 alias ls='eza -alh --group-directories-first --icons=auto'
 alias lsa='eza --tree --level=5 --long --icons --git'
 alias jb='/usr/bin/git --git-dir=$HOME/.jb/ --work-tree=$HOME'
-
+alias orin='ssh jvdb@192.168.5.44'
 
 # Shell integrations
 eval "$(fzf --zsh)"
