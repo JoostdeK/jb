@@ -85,6 +85,7 @@ alias jb='/usr/bin/git --git-dir=$HOME/.jb/ --work-tree=$HOME'
 alias orin='ssh jvdb@192.168.5.44'
 alias m1='sudo mount /dev/nvme1n1p1 /mnt/games'
 alias m0='sudo mount /dev/nvme0n1p1 /mnt/games'
+alias ds='sudo systemctl start containerd.service docker.service'
 
 # Shell integrations
 eval "$(fzf --zsh)"
