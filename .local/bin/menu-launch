@@ -44,6 +44,7 @@ show_setup_config_menu() {
   pick_and_run "Setup" <<'EOF' || show_main_menu
   Bins     | open_in_editor ~/.local/bin/
 󱆃  System   | open_in_editor ~/dev/system/
+󰓢  Monitors | show_monitors_menu
   Vim      | open_in_editor ~/.config/nvim/
   Hypr     | open_in_editor ~/.config/hypr/
 󰌧  Walker   | open_in_editor ~/.config/walker/
@@ -140,6 +141,58 @@ pick_and_run() {
 
   local cmd="${cmds[$choice]}"
   [[ -n "$cmd" ]] && eval "$cmd"
+}
+
+show_monitors_menu() {
+  local HYPR_DIR="$HOME/.config/hypr"
+  local MON_DIR="$HYPR_DIR/monitors"
+  local TARGET="$HYPR_DIR/monitors.conf"
+
+  # Collect matching files
+  shopt -s nullglob
+  local files=("$MON_DIR"/mon-*.conf)
+  shopt -u nullglob
+
+  # No files? bail back to main menu
+  if ((${#files[@]} == 0)); then
+    notify-send "Monitors" "No files found in $MON_DIR (expected mon-<place>.conf)"
+    show_main_menu
+    return
+  fi
+
+  # Build menu labels + map label -> filepath
+  local labels=()
+  declare -A file_for
+
+  local f base place
+  for f in "${files[@]}"; do
+    base="$(basename -- "$f")" # mon-<place>.conf
+    place="${base#mon-}"       # <place>.conf
+    place="${place%.conf}"     # <place>
+
+    # If you want an icon in front, add it here; keep mapping key identical to label.
+    labels+=("$place")
+    file_for["$place"]="$f"
+  done
+
+  local options choice src
+  options="$(printf '%s\n' "${labels[@]}")"
+
+  choice="$(menu "Monitors" "$options")" || {
+    show_main_menu
+    return
+  }
+
+  src="${file_for[$choice]}"
+  if [[ -z "$src" || ! -f "$src" ]]; then
+    notify-send "Monitors" "Invalid selection."
+    show_main_menu
+    return
+  fi
+
+  # Overwrite target with selected config
+  cp -- "$src" "$TARGET"
+  notify-send "Monitors" "Applied: $choice"
 }
 
 show_main_menu
