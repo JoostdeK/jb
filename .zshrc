@@ -86,8 +86,12 @@ alias orin='ssh jvdb@192.168.5.44'
 alias m1='sudo mount /dev/nvme1n1p1 /mnt/games'
 alias m0='sudo mount /dev/nvme0n1p1 /mnt/games'
 alias ds='sudo systemctl start containerd.service docker.service'
+alias drop='dropbox-cli'
 
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
+
+# opencode
+export PATH=/home/jvdb/.opencode/bin:$PATH
