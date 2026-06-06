@@ -88,7 +88,8 @@ alias m0='sudo mount /dev/nvme0n1p1 /mnt/games'
 alias mnas='sudo mount -t nfs -o vers=4 192.168.5.6:/mnt/tank/data /mnt/nas'
 alias ds='sudo systemctl start containerd.service docker.service'
 alias drop='dropbox-cli'
-
+alias henk="ssh -t hermes@192.168.5.10 'exec /home/hermes/.local/bin/hermes'"
+alias ssh-henk="ssh hermes@192.168.5.10"
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
